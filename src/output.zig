@@ -31,7 +31,11 @@ const EscapeSequence = enum {
 fn drawRows(terminal_size: TerminalSize) !void {
     var row_index: i16 = 0;
     while (row_index < terminal_size.rows) : (row_index += 1) {
-        _ = try posix.write(posix.STDOUT_FILENO, "~\r\n");
+        _ = try posix.write(posix.STDOUT_FILENO, "~");
+
+        if (row_index < terminal_size.rows - 1) {
+            _ = try posix.write(posix.STDOUT_FILENO, "\r\n");
+        }
     }
 }
 
