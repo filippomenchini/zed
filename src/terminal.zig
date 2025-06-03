@@ -3,8 +3,8 @@ const posix = std.posix;
 
 const TerminalError = error{
     InitError,
-    EnableRowModeError,
-    DisableRowModeError,
+    EnableRawModeError,
+    DisableRawModeError,
     ReadingError,
 };
 
@@ -43,13 +43,13 @@ pub const Terminal = struct {
         raw.cc[@intFromEnum(posix.V.TIME)] = 1;
 
         posix.tcsetattr(posix.STDIN_FILENO, posix.TCSA.FLUSH, raw) catch {
-            return TerminalError.EnableRowModeError;
+            return TerminalError.EnableRawModeError;
         };
     }
 
     pub fn disableRawMode(self: *const Terminal) TerminalError!void {
         posix.tcsetattr(posix.STDIN_FILENO, posix.TCSA.FLUSH, self.orig_termios) catch {
-            return TerminalError.DisableRowModeError;
+            return TerminalError.DisableRawModeError;
         };
     }
 

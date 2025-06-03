@@ -18,7 +18,7 @@ pub fn main() !void {
         if (ascii.isControl(c[0])) {
             std.debug.print("{d}\r\n", .{c});
         } else {
-            std.debug.print("{d} ('{c}')\r\n", .{ c, c });
+            std.debug.print("{d} ('{c}')\r\n", .{ c[0], c[0] });
         }
 
         if (c[0] == 'q') break;
