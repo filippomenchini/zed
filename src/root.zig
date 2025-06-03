@@ -1,2 +1,3 @@
 pub const terminal = @import("terminal.zig");
 pub const config = @import("config.zig");
+pub const input = @import("input.zig");
