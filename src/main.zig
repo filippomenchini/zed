@@ -4,6 +4,7 @@ const term = zed.terminal;
 const config = zed.config;
 const input = zed.input;
 const output = zed.output;
+const editor = zed.editor;
 
 pub fn main() !void {
     const key_bindings = [_]config.KeyBinding{
@@ -15,15 +16,10 @@ pub fn main() !void {
     };
 
     const terminal = try term.Terminal.init();
+    const current_editor = try editor.Editor.init(&terminal, &editor_config);
 
-    try terminal.enableRawMode();
-    defer terminal.disableRawMode() catch {
-        @panic("PANIC! Cannot disable raw mode!");
-    };
-
-    try output.clearScreen();
-
+    try current_editor.start();
     while (true) {
-        try input.processKeypress(&terminal, &editor_config);
+        try current_editor.handleInput();
     }
 }
