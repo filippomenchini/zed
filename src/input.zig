@@ -108,6 +108,7 @@ pub fn processKeypress(running_terminal: *const terminal.Terminal, editor_config
             // For a production editor, consider returning a quit signal instead
             .quit => {
                 try output.clearScreen();
+                try running_terminal.disableRawMode();
                 posix.exit(0);
             },
         }
