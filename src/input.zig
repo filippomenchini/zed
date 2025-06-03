@@ -1,6 +1,7 @@
 const std = @import("std");
 const terminal = @import("terminal.zig");
 const config = @import("config.zig");
+const output = @import("output.zig");
 
 const posix = std.posix;
 
@@ -105,7 +106,10 @@ pub fn processKeypress(running_terminal: *const terminal.Terminal, editor_config
             // Immediate program termination
             // Note: This bypasses defer statements and cleanup code
             // For a production editor, consider returning a quit signal instead
-            .quit => posix.exit(0),
+            .quit => {
+                try output.clearScreen();
+                posix.exit(0);
+            },
         }
     }
 
