@@ -7,8 +7,27 @@ const TerminalError = error{
     ReadingError,
 };
 
+pub const TerminalSize = struct {
+    rows: u16,
+    cols: u16,
+};
+
+const EscapeSequence = enum {
+    clear_entire_screen,
+    move_cursor_to_origin,
+    clear_line,
+    pub fn toString(self: EscapeSequence) []const u8 {
+        return switch (self) {
+            .clear_entire_screen => "\x1b[2J",
+            .move_cursor_to_origin => "\x1b[H",
+            .clear_line => "\x1b[K",
+        };
+    }
+};
+
 pub const Terminal = struct {
     orig_termios: std.posix.termios,
+    size: TerminalSize,
 
     pub fn init() TerminalError!Terminal {
         const termios = std.posix.tcgetattr(std.posix.STDIN_FILENO) catch {
@@ -17,6 +36,7 @@ pub const Terminal = struct {
 
         return .{
             .orig_termios = termios,
+            .size = getTerminalSize(),
         };
     }
 
@@ -55,6 +75,20 @@ pub const Terminal = struct {
     pub fn read(_: *Terminal, buffer: []u8) TerminalError!usize {
         return std.posix.read(std.posix.STDIN_FILENO, buffer) catch {
             return TerminalError.ReadingError;
+        };
+    }
+
+    fn getTerminalSize() TerminalSize {
+        var buffer: std.posix.winsize = undefined;
+        _ = std.posix.system.ioctl(
+            std.posix.STDOUT_FILENO,
+            std.posix.T.IOCGWINSZ,
+            @intFromPtr(&buffer),
+        );
+
+        return TerminalSize{
+            .rows = buffer.row,
+            .cols = buffer.col,
         };
     }
 };

@@ -76,12 +76,6 @@ pub const Output = struct {
     fn drawRows(self: *Output) !void {
         var row_index: i16 = 0;
         while (row_index < self.terminal_size.rows) : (row_index += 1) {
-            if (row_index == 0) {
-                const welcome_msg = "Zed - a simple Zig text EDitor\r\n";
-                try self.append_buffer.append(welcome_msg);
-                continue;
-            }
-
             try self.append_buffer.append("~");
 
             try self.append_buffer.append(EscapeSequence.clear_line.toString());
