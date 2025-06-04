@@ -21,12 +21,18 @@ pub const Editor = struct {
         };
     }
 
-    pub fn start(self: *Editor) !void {
+    pub fn run(self: *Editor) !void {
+        try self.start();
+        while (true)
+            try self.handleInput();
+    }
+
+    fn start(self: *Editor) !void {
         try self.terminal.enableRawMode();
         try self.output.refreshScreen();
     }
 
-    pub fn handleInput(self: *Editor) !void {
+    fn handleInput(self: *Editor) !void {
         if (try self.input.processKeypress(self.config)) |action| {
             switch (action) {
                 .quit => {
