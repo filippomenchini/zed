@@ -1,4 +1,5 @@
 const std = @import("std");
+const ab = @import("append_buffer.zig");
 
 const TerminalError = error{
     InitError,
@@ -12,7 +13,7 @@ pub const TerminalSize = struct {
     cols: u16,
 };
 
-const EscapeSequence = enum {
+pub const EscapeSequence = enum {
     clear_entire_screen,
     move_cursor_to_origin,
     clear_line,
@@ -28,8 +29,9 @@ const EscapeSequence = enum {
 pub const Terminal = struct {
     orig_termios: std.posix.termios,
     size: TerminalSize,
+    append_buffer: *ab.AppendBuffer,
 
-    pub fn init() TerminalError!Terminal {
+    pub fn init(append_buffer: *ab.AppendBuffer) TerminalError!Terminal {
         const termios = std.posix.tcgetattr(std.posix.STDIN_FILENO) catch {
             return TerminalError.InitError;
         };
@@ -37,6 +39,7 @@ pub const Terminal = struct {
         return .{
             .orig_termios = termios,
             .size = getTerminalSize(),
+            .append_buffer = append_buffer,
         };
     }
 
@@ -76,6 +79,14 @@ pub const Terminal = struct {
         return std.posix.read(std.posix.STDIN_FILENO, buffer) catch {
             return TerminalError.ReadingError;
         };
+    }
+
+    pub fn appendToBuffer(self: *Terminal, data: []const u8) !void {
+        try self.append_buffer.append(data);
+    }
+
+    pub fn flush(self: *Terminal) !void {
+        try self.append_buffer.flush();
     }
 
     fn getTerminalSize() TerminalSize {
