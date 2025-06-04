@@ -1,3 +1,4 @@
+const std = @import("std");
 const zed = @import("zed");
 
 const term = zed.terminal;
@@ -7,6 +8,13 @@ const output = zed.output;
 const editor = zed.editor;
 
 pub fn main() !void {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    const allocator = gpa.allocator();
+    defer {
+        const deinit_status = gpa.deinit();
+        if (deinit_status == .leak) @panic("Memory leak detected!");
+    }
+
     const key_bindings = [_]config.KeyBinding{
         .{ .key = config.ctrlKey('c'), .action = config.Action.quit },
     };
@@ -16,7 +24,7 @@ pub fn main() !void {
     };
 
     const terminal = try term.Terminal.init();
-    const current_editor = try editor.Editor.init(&terminal, &editor_config);
+    const current_editor = try editor.Editor.init(allocator, &terminal, &editor_config);
 
     try current_editor.start();
     while (true) {

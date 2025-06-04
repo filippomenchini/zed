@@ -28,7 +28,6 @@ pub fn processKeypress(
     if (editor_config.findAction(character)) |action| {
         switch (action) {
             .quit => {
-                try output.clearScreen();
                 try running_terminal.disableRawMode();
                 posix.exit(0);
             },

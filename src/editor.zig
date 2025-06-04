@@ -1,21 +1,26 @@
+const std = @import("std");
+const mem = std.mem;
+
 const terminal = @import("terminal.zig");
 const config = @import("config.zig");
 const output = @import("output.zig");
 const input = @import("input.zig");
 
 pub const Editor = struct {
+    allocator: mem.Allocator,
     terminal: *const terminal.Terminal,
     config: *const config.Config,
     terminal_size: output.TerminalSize,
 
     pub fn init(
+        allocator: mem.Allocator,
         term: *const terminal.Terminal,
         conf: *const config.Config,
     ) !Editor {
         const terminal_size = output.getTerminalSize();
-        try output.clearScreen();
 
         return Editor{
+            .allocator = allocator,
             .terminal = term,
             .config = conf,
             .terminal_size = terminal_size,
@@ -24,7 +29,7 @@ pub const Editor = struct {
 
     pub fn start(self: *const Editor) !void {
         try self.terminal.enableRawMode();
-        try output.refreshScreen(self.terminal_size);
+        try output.refreshScreen(self.allocator, self.terminal_size);
     }
 
     pub fn handleInput(self: *const Editor) !void {

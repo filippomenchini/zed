@@ -1,5 +1,6 @@
 const std = @import("std");
 const posix = std.posix;
+const mem = std.mem;
 
 pub const OutputError = error{
     SendEscapeSequenceError,
@@ -17,6 +18,33 @@ pub const TerminalSize = struct {
     cols: u16,
 };
 
+pub const AppendBuffer = struct {
+    buffer: std.ArrayList(u8),
+
+    pub fn init(allocator: mem.Allocator) AppendBuffer {
+        return .{
+            .buffer = std.ArrayList(u8).init(allocator),
+        };
+    }
+
+    pub fn deinit(self: *AppendBuffer) void {
+        self.buffer.deinit();
+    }
+
+    pub fn append(self: *AppendBuffer, data: []const u8) !void {
+        try self.buffer.appendSlice(data);
+    }
+
+    pub fn appendEscape(self: *AppendBuffer, seq: EscapeSequence) !void {
+        try self.append(seq.toString());
+    }
+
+    pub fn flush(self: *AppendBuffer) !void {
+        _ = try posix.write(posix.STDOUT_FILENO, self.buffer.items);
+        self.buffer.clearRetainingCapacity();
+    }
+};
+
 const EscapeSequence = enum {
     clear_entire_screen,
     move_cursor_to_origin,
@@ -28,13 +56,16 @@ const EscapeSequence = enum {
     }
 };
 
-fn drawRows(terminal_size: TerminalSize) !void {
+fn drawRows(
+    terminal_size: TerminalSize,
+    append_buffer: *AppendBuffer,
+) !void {
     var row_index: i16 = 0;
     while (row_index < terminal_size.rows) : (row_index += 1) {
-        _ = try posix.write(posix.STDOUT_FILENO, "~");
+        try append_buffer.append("~");
 
         if (row_index < terminal_size.rows - 1) {
-            _ = try posix.write(posix.STDOUT_FILENO, "\r\n");
+            try append_buffer.append("\r\n");
         }
     }
 }
@@ -45,15 +76,15 @@ fn sendEscapeSequence(escape_sequence: EscapeSequence) OutputError!void {
     };
 }
 
-pub fn clearScreen() !void {
-    try sendEscapeSequence(.clear_entire_screen);
-    try sendEscapeSequence(.move_cursor_to_origin);
-}
-
-pub fn refreshScreen(terminal_size: TerminalSize) !void {
-    try clearScreen();
-    try drawRows(terminal_size);
-    try sendEscapeSequence(.move_cursor_to_origin);
+pub fn refreshScreen(
+    allocator: mem.Allocator,
+    terminal_size: TerminalSize,
+) !void {
+    var append_buffer = AppendBuffer.init(allocator);
+    try append_buffer.appendEscape(.clear_entire_screen);
+    try drawRows(terminal_size, &append_buffer);
+    try append_buffer.appendEscape(.move_cursor_to_origin);
+    try append_buffer.flush();
 }
 
 pub fn getTerminalSize() TerminalSize {
