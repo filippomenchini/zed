@@ -1,9 +1,5 @@
 const std = @import("std");
-const term = @import("terminal.zig");
-const config = @import("config.zig");
-const output = @import("output.zig");
-
-const posix = std.posix;
+const zed = @import("root.zig");
 
 const InputError = error{
     ReadError,
@@ -11,11 +7,16 @@ const InputError = error{
 };
 
 pub const Input = struct {
-    terminal: *const term.Terminal,
+    terminal: *zed.terminal.Terminal,
+    output: *zed.output.Output,
 
-    pub fn init(terminal: *const term.Terminal) Input {
+    pub fn init(
+        terminal: *zed.terminal.Terminal,
+        output: *zed.output.Output,
+    ) Input {
         return .{
             .terminal = terminal,
+            .output = output,
         };
     }
 
@@ -30,15 +31,16 @@ pub const Input = struct {
 
     pub fn processKeypress(
         self: *Input,
-        editor_config: *const config.Config,
+        editor_config: *const zed.config.Config,
     ) !void {
         const character = try self.readKey();
 
         if (editor_config.findAction(character)) |action| {
             switch (action) {
                 .quit => {
+                    try self.output.clearScreen();
                     try self.terminal.disableRawMode();
-                    posix.exit(0);
+                    std.posix.exit(0);
                 },
             }
         }

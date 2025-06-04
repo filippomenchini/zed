@@ -12,8 +12,17 @@ pub fn main() !void {
     const key_bindings = [_]zed.config.KeyBinding{
         .{ .key = zed.config.Config.ctrlKey('c'), .action = zed.config.Action.quit },
     };
+    var config = zed.config.Config{ .key_bindings = &key_bindings };
+    var terminal = try zed.terminal.Terminal.init();
+    var output = zed.output.Output.init(allocator);
+    var input = zed.input.Input.init(&terminal, &output);
 
-    var current_editor = try zed.editor.Editor.init(allocator, &key_bindings);
+    var current_editor = try zed.editor.Editor.init(
+        &config,
+        &terminal,
+        &input,
+        &output,
+    );
 
     try current_editor.start();
     while (true) {

@@ -1,5 +1,4 @@
 const std = @import("std");
-const posix = std.posix;
 
 const TerminalError = error{
     InitError,
@@ -9,10 +8,10 @@ const TerminalError = error{
 };
 
 pub const Terminal = struct {
-    orig_termios: posix.termios,
+    orig_termios: std.posix.termios,
 
     pub fn init() TerminalError!Terminal {
-        const termios = posix.tcgetattr(posix.STDIN_FILENO) catch {
+        const termios = std.posix.tcgetattr(std.posix.STDIN_FILENO) catch {
             return TerminalError.InitError;
         };
 
@@ -21,7 +20,7 @@ pub const Terminal = struct {
         };
     }
 
-    pub fn enableRawMode(self: *const Terminal) TerminalError!void {
+    pub fn enableRawMode(self: *Terminal) TerminalError!void {
         var raw = self.orig_termios;
 
         raw.iflag.IXON = false;
@@ -39,22 +38,22 @@ pub const Terminal = struct {
         raw.lflag.ISIG = false;
         raw.lflag.IEXTEN = false;
 
-        raw.cc[@intFromEnum(posix.V.MIN)] = 0;
-        raw.cc[@intFromEnum(posix.V.TIME)] = 1;
+        raw.cc[@intFromEnum(std.posix.V.MIN)] = 0;
+        raw.cc[@intFromEnum(std.posix.V.TIME)] = 1;
 
-        posix.tcsetattr(posix.STDIN_FILENO, posix.TCSA.FLUSH, raw) catch {
+        std.posix.tcsetattr(std.posix.STDIN_FILENO, std.posix.TCSA.FLUSH, raw) catch {
             return TerminalError.EnableRawModeError;
         };
     }
 
-    pub fn disableRawMode(self: *const Terminal) TerminalError!void {
-        posix.tcsetattr(posix.STDIN_FILENO, posix.TCSA.FLUSH, self.orig_termios) catch {
+    pub fn disableRawMode(self: *Terminal) TerminalError!void {
+        std.posix.tcsetattr(std.posix.STDIN_FILENO, std.posix.TCSA.FLUSH, self.orig_termios) catch {
             return TerminalError.DisableRawModeError;
         };
     }
 
-    pub fn read(_: *const Terminal, buffer: []u8) TerminalError!usize {
-        return posix.read(posix.STDIN_FILENO, buffer) catch {
+    pub fn read(_: *Terminal, buffer: []u8) TerminalError!usize {
+        return std.posix.read(std.posix.STDIN_FILENO, buffer) catch {
             return TerminalError.ReadingError;
         };
     }

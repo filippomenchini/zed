@@ -18,12 +18,14 @@ pub const TerminalSize = struct {
 };
 
 const EscapeSequence = enum {
+    clear_entire_screen,
     move_cursor_to_origin,
     clear_line,
     pub fn toString(self: EscapeSequence) []const u8 {
         return switch (self) {
+            .clear_entire_screen => "\x1b[2J",
             .move_cursor_to_origin => "\x1b[H",
-            .clear_line => "\x1b[?25l",
+            .clear_line => "\x1b[K",
         };
     }
 };
@@ -33,10 +35,10 @@ pub const Output = struct {
     append_buffer: ab.AppendBuffer,
     terminal_size: TerminalSize,
 
-    pub fn init(allocator: std.mem.Allocator, append_buffer: ab.AppendBuffer) Output {
+    pub fn init(allocator: std.mem.Allocator) Output {
         return .{
             .allocator = allocator,
-            .append_buffer = append_buffer,
+            .append_buffer = ab.AppendBuffer.init(allocator),
             .terminal_size = getTerminalSize(),
         };
     }
@@ -47,6 +49,12 @@ pub const Output = struct {
 
     pub fn refreshScreen(self: *Output) !void {
         try self.drawRows();
+        try self.append_buffer.append(EscapeSequence.move_cursor_to_origin.toString());
+        try self.append_buffer.flush();
+    }
+
+    pub fn clearScreen(self: *Output) !void {
+        try self.append_buffer.append(EscapeSequence.clear_entire_screen.toString());
         try self.append_buffer.append(EscapeSequence.move_cursor_to_origin.toString());
         try self.append_buffer.flush();
     }
