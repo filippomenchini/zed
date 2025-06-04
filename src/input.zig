@@ -1,5 +1,5 @@
 const std = @import("std");
-const terminal = @import("terminal.zig");
+const term = @import("terminal.zig");
 const config = @import("config.zig");
 const output = @import("output.zig");
 
@@ -10,27 +10,37 @@ const InputError = error{
     ProcessKeypressError,
 };
 
-fn readKey(running_terminal: *const terminal.Terminal) InputError!u8 {
-    var character: [1]u8 = .{0};
-    _ = running_terminal.read(&character) catch {
-        return InputError.ReadError;
-    };
+pub const Input = struct {
+    terminal: *const term.Terminal,
 
-    return character[0];
-}
+    pub fn init(terminal: *const term.Terminal) Input {
+        return .{
+            .terminal = terminal,
+        };
+    }
 
-pub fn processKeypress(
-    running_terminal: *const terminal.Terminal,
-    editor_config: *const config.Config,
-) !void {
-    const character = try readKey(running_terminal);
+    pub fn readKey(self: *Input) InputError!u8 {
+        var character: [1]u8 = .{0};
+        _ = self.terminal.read(&character) catch {
+            return InputError.ReadError;
+        };
 
-    if (editor_config.findAction(character)) |action| {
-        switch (action) {
-            .quit => {
-                try running_terminal.disableRawMode();
-                posix.exit(0);
-            },
+        return character[0];
+    }
+
+    pub fn processKeypress(
+        self: *Input,
+        editor_config: *const config.Config,
+    ) !void {
+        const character = try self.readKey();
+
+        if (editor_config.findAction(character)) |action| {
+            switch (action) {
+                .quit => {
+                    try self.terminal.disableRawMode();
+                    posix.exit(0);
+                },
+            }
         }
     }
-}
+};

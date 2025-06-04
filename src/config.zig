@@ -11,6 +11,8 @@ pub const KeyBinding = struct {
 
 pub const Config = struct {
     key_bindings: []const KeyBinding,
+    const ctrl_bitmask = 0x1f;
+
     pub fn findAction(self: *const Config, key: u8) ?Action {
         for (self.key_bindings) |binding| {
             if (binding.key == key) {
@@ -20,9 +22,8 @@ pub const Config = struct {
 
         return null;
     }
-};
 
-const ctrl_bitmask = 0x1f;
-pub fn ctrlKey(key: u8) u8 {
-    return key & ctrl_bitmask;
-}
+    pub fn ctrlKey(key: u8) u8 {
+        return key & ctrl_bitmask;
+    }
+};

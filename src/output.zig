@@ -1,6 +1,5 @@
 const std = @import("std");
-const posix = std.posix;
-const mem = std.mem;
+const ab = @import("append_buffer.zig");
 
 pub const OutputError = error{
     SendEscapeSequenceError,
@@ -18,33 +17,6 @@ pub const TerminalSize = struct {
     cols: u16,
 };
 
-pub const AppendBuffer = struct {
-    buffer: std.ArrayList(u8),
-
-    pub fn init(allocator: mem.Allocator) AppendBuffer {
-        return .{
-            .buffer = std.ArrayList(u8).init(allocator),
-        };
-    }
-
-    pub fn deinit(self: *AppendBuffer) void {
-        self.buffer.deinit();
-    }
-
-    pub fn append(self: *AppendBuffer, data: []const u8) !void {
-        try self.buffer.appendSlice(data);
-    }
-
-    pub fn appendEscape(self: *AppendBuffer, seq: EscapeSequence) !void {
-        try self.append(seq.toString());
-    }
-
-    pub fn flush(self: *AppendBuffer) !void {
-        _ = try posix.write(posix.STDOUT_FILENO, self.buffer.items);
-        self.buffer.clearRetainingCapacity();
-    }
-};
-
 const EscapeSequence = enum {
     move_cursor_to_origin,
     clear_line,
@@ -56,47 +28,58 @@ const EscapeSequence = enum {
     }
 };
 
-fn drawRows(
+pub const Output = struct {
+    allocator: std.mem.Allocator,
+    append_buffer: ab.AppendBuffer,
     terminal_size: TerminalSize,
-    append_buffer: *AppendBuffer,
-) !void {
-    var row_index: i16 = 0;
-    while (row_index < terminal_size.rows) : (row_index += 1) {
-        if (row_index == 0) {
-            const welcome_msg = "Zed - a simple Zig text EDitor\r\n";
-            try append_buffer.append(welcome_msg);
-            continue;
-        }
 
-        try append_buffer.append("~");
+    pub fn init(allocator: std.mem.Allocator, append_buffer: ab.AppendBuffer) Output {
+        return .{
+            .allocator = allocator,
+            .append_buffer = append_buffer,
+            .terminal_size = getTerminalSize(),
+        };
+    }
 
-        try append_buffer.appendEscape(.clear_line);
-        if (row_index < terminal_size.rows - 1) {
-            try append_buffer.append("\r\n");
+    pub fn deinit(self: *Output) void {
+        self.append_buffer.deinit();
+    }
+
+    pub fn refreshScreen(self: *Output) !void {
+        try self.drawRows();
+        try self.append_buffer.append(EscapeSequence.move_cursor_to_origin.toString());
+        try self.append_buffer.flush();
+    }
+
+    fn getTerminalSize() TerminalSize {
+        var buffer: std.posix.winsize = undefined;
+        _ = std.posix.system.ioctl(
+            std.posix.STDOUT_FILENO,
+            std.posix.T.IOCGWINSZ,
+            @intFromPtr(&buffer),
+        );
+
+        return TerminalSize{
+            .rows = buffer.row,
+            .cols = buffer.col,
+        };
+    }
+
+    fn drawRows(self: *Output) !void {
+        var row_index: i16 = 0;
+        while (row_index < self.terminal_size.rows) : (row_index += 1) {
+            if (row_index == 0) {
+                const welcome_msg = "Zed - a simple Zig text EDitor\r\n";
+                try self.append_buffer.append(welcome_msg);
+                continue;
+            }
+
+            try self.append_buffer.append("~");
+
+            try self.append_buffer.append(EscapeSequence.clear_line.toString());
+            if (row_index < self.terminal_size.rows - 1) {
+                try self.append_buffer.append("\r\n");
+            }
         }
     }
-}
-
-pub fn refreshScreen(
-    allocator: mem.Allocator,
-    terminal_size: TerminalSize,
-) !void {
-    var append_buffer = AppendBuffer.init(allocator);
-    try drawRows(terminal_size, &append_buffer);
-    try append_buffer.appendEscape(.move_cursor_to_origin);
-    try append_buffer.flush();
-}
-
-pub fn getTerminalSize() TerminalSize {
-    var buffer: posix.winsize = undefined;
-    _ = posix.system.ioctl(
-        posix.STDOUT_FILENO,
-        posix.T.IOCGWINSZ,
-        @intFromPtr(&buffer),
-    );
-
-    return TerminalSize{
-        .rows = buffer.row,
-        .cols = buffer.col,
-    };
-}
+};
