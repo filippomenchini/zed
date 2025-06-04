@@ -46,12 +46,12 @@ pub const AppendBuffer = struct {
 };
 
 const EscapeSequence = enum {
-    clear_entire_screen,
     move_cursor_to_origin,
+    clear_line,
     pub fn toString(self: EscapeSequence) []const u8 {
         return switch (self) {
-            .clear_entire_screen => "\x1b[2J",
             .move_cursor_to_origin => "\x1b[H",
+            .clear_line => "\x1b[?25l",
         };
     }
 };
@@ -62,18 +62,19 @@ fn drawRows(
 ) !void {
     var row_index: i16 = 0;
     while (row_index < terminal_size.rows) : (row_index += 1) {
+        if (row_index == 0) {
+            const welcome_msg = "Zed - a simple Zig text EDitor\r\n";
+            try append_buffer.append(welcome_msg);
+            continue;
+        }
+
         try append_buffer.append("~");
 
+        try append_buffer.appendEscape(.clear_line);
         if (row_index < terminal_size.rows - 1) {
             try append_buffer.append("\r\n");
         }
     }
-}
-
-fn sendEscapeSequence(escape_sequence: EscapeSequence) OutputError!void {
-    _ = posix.write(posix.STDOUT_FILENO, escape_sequence.toString()) catch {
-        return OutputError.SendEscapeSequenceError;
-    };
 }
 
 pub fn refreshScreen(
@@ -81,7 +82,6 @@ pub fn refreshScreen(
     terminal_size: TerminalSize,
 ) !void {
     var append_buffer = AppendBuffer.init(allocator);
-    try append_buffer.appendEscape(.clear_entire_screen);
     try drawRows(terminal_size, &append_buffer);
     try append_buffer.appendEscape(.move_cursor_to_origin);
     try append_buffer.flush();
