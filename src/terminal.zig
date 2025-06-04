@@ -85,6 +85,10 @@ pub const Terminal = struct {
         try self.append_buffer.append(data);
     }
 
+    pub fn appendEscapeToBuffer(self: *Terminal, escape: EscapeSequence) !void {
+        try self.appendToBuffer(escape.toString());
+    }
+
     pub fn flush(self: *Terminal) !void {
         try self.append_buffer.flush();
     }

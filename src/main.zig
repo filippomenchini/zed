@@ -4,7 +4,7 @@ const zed = @import("zed");
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
-    defer gpa.deinit();
+    defer _ = gpa.deinit();
 
     const key_bindings = [_]zed.config.KeyBinding{
         .{ .key = zed.config.Config.ctrlKey('c'), .action = zed.action.Action.quit },

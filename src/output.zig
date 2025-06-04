@@ -16,13 +16,13 @@ pub const Output = struct {
 
     pub fn refreshScreen(self: *Output) !void {
         try self.drawRows();
-        try self.terminal.appendToBuffer(zed.terminal.EscapeSequence.move_cursor_to_origin.toString());
+        try self.terminal.appendEscapeToBuffer(.move_cursor_to_origin);
         try self.terminal.flush();
     }
 
     pub fn clearScreen(self: *Output) !void {
-        try self.terminal.appendToBuffer(zed.terminal.EscapeSequence.clear_entire_screen.toString());
-        try self.terminal.appendToBuffer(zed.terminal.EscapeSequence.move_cursor_to_origin.toString());
+        try self.terminal.appendEscapeToBuffer(.clear_entire_screen);
+        try self.terminal.appendEscapeToBuffer(.move_cursor_to_origin);
         try self.terminal.flush();
     }
 
