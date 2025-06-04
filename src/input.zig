@@ -31,18 +31,9 @@ pub const Input = struct {
 
     pub fn processKeypress(
         self: *Input,
-        editor_config: *const zed.config.Config,
-    ) !void {
-        const character = try self.readKey();
-
-        if (editor_config.findAction(character)) |action| {
-            switch (action) {
-                .quit => {
-                    try self.output.clearScreen();
-                    try self.terminal.disableRawMode();
-                    std.posix.exit(0);
-                },
-            }
-        }
+        config: *const zed.config.Config,
+    ) !?zed.action.Action {
+        const key = try self.readKey();
+        return config.findAction(key);
     }
 };

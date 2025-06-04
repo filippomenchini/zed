@@ -1,19 +1,16 @@
 const std = @import("std");
-
-pub const Action = enum {
-    quit,
-};
+const zed = @import("root.zig");
 
 pub const KeyBinding = struct {
     key: u8,
-    action: Action,
+    action: zed.action.Action,
 };
 
 pub const Config = struct {
     key_bindings: []const KeyBinding,
     const ctrl_bitmask = 0x1f;
 
-    pub fn findAction(self: *const Config, key: u8) ?Action {
+    pub fn findAction(self: *const Config, key: u8) ?zed.action.Action {
         for (self.key_bindings) |binding| {
             if (binding.key == key) {
                 return binding.action;

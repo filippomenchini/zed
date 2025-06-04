@@ -27,6 +27,14 @@ pub const Editor = struct {
     }
 
     pub fn handleInput(self: *Editor) !void {
-        try self.input.processKeypress(self.config);
+        if (try self.input.processKeypress(self.config)) |action| {
+            switch (action) {
+                .quit => {
+                    try self.output.clearScreen();
+                    try self.terminal.disableRawMode();
+                    std.posix.exit(0);
+                },
+            }
+        }
     }
 };

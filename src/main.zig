@@ -4,13 +4,10 @@ const zed = @import("zed");
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
-    defer {
-        const deinit_status = gpa.deinit();
-        if (deinit_status == .leak) @panic("Memory leak detected!");
-    }
+    defer gpa.deinit();
 
     const key_bindings = [_]zed.config.KeyBinding{
-        .{ .key = zed.config.Config.ctrlKey('c'), .action = zed.config.Action.quit },
+        .{ .key = zed.config.Config.ctrlKey('c'), .action = zed.action.Action.quit },
     };
     var config = zed.config.Config{ .key_bindings = &key_bindings };
     var append_buffer = zed.append_buffer.AppendBuffer.init(allocator);
