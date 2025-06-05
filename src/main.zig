@@ -19,12 +19,17 @@ pub fn main() !void {
     var terminal = try zed.terminal.Terminal.init(&append_buffer);
     var output = zed.output.Output.init(&terminal);
     var input = zed.input.Input.init(&terminal);
+    var editor_state = zed.editor.EditorState.init(allocator, "");
+    var args = try zed.args.Args.init(allocator);
     var editor = try zed.editor.Editor.init(
         &config,
         &terminal,
         &input,
         &output,
+        &editor_state,
+        &args,
     );
+    defer editor.deinit();
 
     try editor.run();
 }
