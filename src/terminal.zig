@@ -14,8 +14,8 @@ pub const Size = struct {
 };
 
 pub const CursorPosition = struct {
-    x: u16,
-    y: u16,
+    x: u16 = 1,
+    y: u16 = 1,
 };
 
 pub const CursorPositionOffset = struct {
@@ -62,10 +62,7 @@ pub const Terminal = struct {
         return .{
             .orig_termios = termios,
             .size = getTerminalSize(),
-            .position = CursorPosition{
-                .x = 1,
-                .y = 1,
-            },
+            .position = CursorPosition{},
             .append_buffer = append_buffer,
         };
     }

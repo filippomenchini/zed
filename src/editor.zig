@@ -29,8 +29,8 @@ pub const Editor = struct {
 
     fn start(self: *Editor) !void {
         try self.terminal.enableRawMode();
-        try self.terminal.setCursorPosition(zed.terminal.CursorPosition{ .x = 1, .y = 1 });
-        try self.output.render(self.terminal.position);
+        try self.terminal.setCursorPosition(zed.terminal.CursorPosition{});
+        try self.output.render();
         try self.terminal.flush();
     }
 
@@ -56,7 +56,7 @@ pub const Editor = struct {
     }
 
     fn render(self: *Editor) !void {
-        try self.output.render(self.terminal.position);
+        try self.output.render();
         try self.terminal.flush();
     }
 };

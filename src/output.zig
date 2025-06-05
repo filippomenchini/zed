@@ -14,11 +14,11 @@ pub const Output = struct {
         };
     }
 
-    pub fn render(self: *Output, cursor_position: zed.terminal.CursorPosition) !void {
+    pub fn render(self: *Output) !void {
         try self.terminal.appendEscapeToBuffer(.clear_entire_screen);
         try self.terminal.appendEscapeToBuffer(.move_cursor_to_origin);
         try self.drawRows();
-        try self.terminal.setCursorPosition(cursor_position);
+        try self.terminal.setCursorPosition(self.terminal.position);
     }
 
     pub fn refreshScreen(self: *Output) !void {
