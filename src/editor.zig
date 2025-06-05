@@ -29,18 +29,34 @@ pub const Editor = struct {
 
     fn start(self: *Editor) !void {
         try self.terminal.enableRawMode();
-        try self.output.refreshScreen();
+        try self.terminal.setCursorPosition(zed.terminal.CursorPosition{ .x = 1, .y = 1 });
+        try self.output.render(self.terminal.position);
+        try self.terminal.flush();
     }
 
     fn handleInput(self: *Editor) !void {
         if (try self.input.processKeypress(self.config)) |action| {
-            switch (action) {
-                .quit => {
-                    try self.output.clearScreen();
-                    try self.terminal.disableRawMode();
-                    std.posix.exit(0);
-                },
-            }
+            try self.executeAction(action);
+            try self.render();
         }
+    }
+
+    fn executeAction(self: *Editor, action: zed.action.Action) !void {
+        switch (action) {
+            .moveCursorUp => try self.terminal.moveCursorByDirection(.up, 1),
+            .moveCursorDown => try self.terminal.moveCursorByDirection(.down, 1),
+            .moveCursorLeft => try self.terminal.moveCursorByDirection(.left, 1),
+            .moveCursorRight => try self.terminal.moveCursorByDirection(.right, 1),
+            .quit => {
+                try self.output.clearScreen();
+                try self.terminal.disableRawMode();
+                std.posix.exit(0);
+            },
+        }
+    }
+
+    fn render(self: *Editor) !void {
+        try self.output.render(self.terminal.position);
+        try self.terminal.flush();
     }
 };

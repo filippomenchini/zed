@@ -14,9 +14,15 @@ pub const Output = struct {
         };
     }
 
-    pub fn refreshScreen(self: *Output) !void {
-        try self.drawRows();
+    pub fn render(self: *Output, cursor_position: zed.terminal.CursorPosition) !void {
+        try self.terminal.appendEscapeToBuffer(.clear_entire_screen);
         try self.terminal.appendEscapeToBuffer(.move_cursor_to_origin);
+        try self.drawRows();
+        try self.terminal.setCursorPosition(cursor_position);
+    }
+
+    pub fn refreshScreen(self: *Output) !void {
+        try self.render();
         try self.terminal.flush();
     }
 

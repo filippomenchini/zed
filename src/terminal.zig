@@ -8,15 +8,33 @@ const TerminalError = error{
     ReadingError,
 };
 
-pub const TerminalSize = struct {
+pub const Size = struct {
     rows: u16,
     cols: u16,
+};
+
+pub const CursorPosition = struct {
+    x: u16,
+    y: u16,
+};
+
+pub const CursorPositionOffset = struct {
+    x: i16 = 0,
+    y: i16 = 0,
+};
+
+pub const CursorDirection = enum {
+    up,
+    down,
+    left,
+    right,
 };
 
 pub const EscapeSequence = enum {
     clear_entire_screen,
     move_cursor_to_origin,
     clear_line,
+
     pub fn toString(self: EscapeSequence) []const u8 {
         return switch (self) {
             .clear_entire_screen => "\x1b[2J",
@@ -24,11 +42,16 @@ pub const EscapeSequence = enum {
             .clear_line => "\x1b[K",
         };
     }
+
+    pub fn moveCursorTo(buf: []u8, x: u16, y: u16) ![]const u8 {
+        return std.fmt.bufPrint(buf, "\x1b[{d};{d}H", .{ y, x });
+    }
 };
 
 pub const Terminal = struct {
     orig_termios: std.posix.termios,
-    size: TerminalSize,
+    size: Size,
+    position: CursorPosition,
     append_buffer: *ab.AppendBuffer,
 
     pub fn init(append_buffer: *ab.AppendBuffer) TerminalError!Terminal {
@@ -39,6 +62,10 @@ pub const Terminal = struct {
         return .{
             .orig_termios = termios,
             .size = getTerminalSize(),
+            .position = CursorPosition{
+                .x = 1,
+                .y = 1,
+            },
             .append_buffer = append_buffer,
         };
     }
@@ -89,11 +116,50 @@ pub const Terminal = struct {
         try self.appendToBuffer(escape.toString());
     }
 
+    pub fn setCursorPosition(self: *Terminal, position: CursorPosition) !void {
+        var buf: [32]u8 = undefined;
+        const escape = try EscapeSequence.moveCursorTo(&buf, position.x, position.y);
+        try self.appendToBuffer(escape);
+
+        self.position = position;
+    }
+
+    pub fn moveCursorBy(self: *Terminal, offset: CursorPositionOffset) !void {
+        const new_x = @as(i32, self.position.x) + offset.x;
+        const new_y = @as(i32, self.position.y) + offset.y;
+
+        const position = CursorPosition{
+            .x = @max(1, @min(self.size.cols, @as(u16, @intCast(new_x)))),
+            .y = @max(1, @min(self.size.rows, @as(u16, @intCast(new_y)))),
+        };
+
+        try self.setCursorPosition(position);
+    }
+
+    pub fn moveCursorByDirection(self: *Terminal, direction: CursorDirection, offset: u16) !void {
+        const cursor_offset = switch (direction) {
+            .up => CursorPositionOffset{
+                .y = -@as(i16, @intCast(offset)),
+            },
+            .down => CursorPositionOffset{
+                .y = @as(i16, @intCast(offset)),
+            },
+            .left => CursorPositionOffset{
+                .x = -@as(i16, @intCast(offset)),
+            },
+            .right => CursorPositionOffset{
+                .x = @as(i16, @intCast(offset)),
+            },
+        };
+
+        try self.moveCursorBy(cursor_offset);
+    }
+
     pub fn flush(self: *Terminal) !void {
         try self.append_buffer.flush();
     }
 
-    fn getTerminalSize() TerminalSize {
+    fn getTerminalSize() Size {
         var buffer: std.posix.winsize = undefined;
         _ = std.posix.system.ioctl(
             std.posix.STDOUT_FILENO,
@@ -101,7 +167,7 @@ pub const Terminal = struct {
             @intFromPtr(&buffer),
         );
 
-        return TerminalSize{
+        return Size{
             .rows = buffer.row,
             .cols = buffer.col,
         };

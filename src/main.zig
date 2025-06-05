@@ -8,6 +8,10 @@ pub fn main() !void {
 
     const key_bindings = [_]zed.config.KeyBinding{
         .{ .key = zed.config.Config.ctrlKey('c'), .action = zed.action.Action.quit },
+        .{ .key = 'k', .action = zed.action.Action.moveCursorUp },
+        .{ .key = 'j', .action = zed.action.Action.moveCursorDown },
+        .{ .key = 'h', .action = zed.action.Action.moveCursorLeft },
+        .{ .key = 'l', .action = zed.action.Action.moveCursorRight },
     };
 
     var config = zed.config.Config{ .key_bindings = &key_bindings };
