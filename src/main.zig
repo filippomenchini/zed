@@ -14,7 +14,7 @@ pub fn main() !void {
     var append_buffer = zed.append_buffer.AppendBuffer.init(allocator);
     var terminal = try zed.terminal.Terminal.init(&append_buffer);
     var output = zed.output.Output.init(&terminal);
-    var input = zed.input.Input.init(&terminal, &output);
+    var input = zed.input.Input.init(&terminal);
     var editor = try zed.editor.Editor.init(
         &config,
         &terminal,

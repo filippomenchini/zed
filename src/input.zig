@@ -8,15 +8,12 @@ const InputError = error{
 
 pub const Input = struct {
     terminal: *zed.terminal.Terminal,
-    output: *zed.output.Output,
 
     pub fn init(
         terminal: *zed.terminal.Terminal,
-        output: *zed.output.Output,
     ) Input {
         return .{
             .terminal = terminal,
-            .output = output,
         };
     }
 
