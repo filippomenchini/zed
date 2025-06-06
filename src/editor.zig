@@ -6,6 +6,7 @@ pub const EditorState = struct {
     rows: std.ArrayList([]const u8),
     filename: []const u8,
     row_index: usize,
+    col_index: usize,
 
     pub fn init(
         allocator: std.mem.Allocator,
@@ -16,6 +17,7 @@ pub const EditorState = struct {
             .rows = std.ArrayList([]const u8).init(allocator),
             .filename = filename,
             .row_index = 0,
+            .col_index = 0,
         };
     }
 
@@ -87,7 +89,7 @@ pub const Editor = struct {
             try self.state.loadFile(filename.?);
         }
 
-        try self.output.render(&self.state.rows, &self.state.row_index);
+        try self.output.render(&self.state.rows, self.state.row_index, self.state.col_index);
         try self.terminal.flush();
     }
 
@@ -102,28 +104,51 @@ pub const Editor = struct {
         switch (action) {
             .moveCursorUp => {
                 const current_file_row = (self.terminal.position.y - 1) + self.state.row_index;
+                if (current_file_row <= 0) return;
 
-                if (current_file_row > 0) {
-                    if (self.terminal.position.y <= 1) {
-                        self.state.row_index -= 1;
-                    } else {
-                        try self.terminal.moveCursorByDirection(.up, 1);
-                    }
+                if (self.terminal.position.y <= 1) {
+                    self.state.row_index -= 1;
+                } else {
+                    try self.terminal.moveCursorByDirection(.up, 1);
                 }
             },
             .moveCursorDown => {
                 const current_file_row = (self.terminal.position.y - 1) + self.state.row_index;
+                if (current_file_row > self.state.rows.items.len - 1) return;
 
-                if (current_file_row < self.state.rows.items.len - 1) {
-                    if (self.terminal.position.y >= self.terminal.size.rows) {
-                        self.state.row_index += 1;
+                if (self.terminal.position.y >= self.terminal.size.rows) {
+                    self.state.row_index += 1;
+                } else {
+                    try self.terminal.moveCursorByDirection(.down, 1);
+                }
+            },
+            .moveCursorLeft => {
+                const current_file_row = (self.terminal.position.y - 1) + self.state.row_index;
+                const current_file_col = (self.terminal.position.x - 1) + self.state.col_index;
+                if (current_file_row >= self.state.rows.items.len) return;
+
+                if (current_file_col > 0) {
+                    if (self.terminal.position.x <= 1) {
+                        self.state.col_index -= 1;
                     } else {
-                        try self.terminal.moveCursorByDirection(.down, 1);
+                        try self.terminal.moveCursorByDirection(.left, 1);
                     }
                 }
             },
-            .moveCursorLeft => try self.terminal.moveCursorByDirection(.left, 1),
-            .moveCursorRight => try self.terminal.moveCursorByDirection(.right, 1),
+            .moveCursorRight => {
+                const current_file_row = (self.terminal.position.y - 1) + self.state.row_index;
+                const current_file_col = (self.terminal.position.x - 1) + self.state.col_index;
+                if (current_file_row >= self.state.rows.items.len) return;
+
+                const current_row = self.state.rows.items[current_file_row];
+                if (current_file_col < current_row.len) {
+                    if (self.terminal.position.x >= self.terminal.size.cols) {
+                        self.state.col_index += 1;
+                    } else {
+                        try self.terminal.moveCursorByDirection(.right, 1);
+                    }
+                }
+            },
             .quit => {
                 try self.output.clearScreen();
                 try self.terminal.disableRawMode();
@@ -133,7 +158,7 @@ pub const Editor = struct {
     }
 
     fn render(self: *Editor) !void {
-        try self.output.render(&self.state.rows, &self.state.row_index);
+        try self.output.render(&self.state.rows, self.state.row_index, self.state.col_index);
         try self.terminal.flush();
     }
 };
