@@ -5,6 +5,7 @@ pub const EditorState = struct {
     allocator: std.mem.Allocator,
     rows: std.ArrayList([]const u8),
     filename: []const u8,
+    row_index: usize,
 
     pub fn init(
         allocator: std.mem.Allocator,
@@ -14,6 +15,7 @@ pub const EditorState = struct {
             .allocator = allocator,
             .rows = std.ArrayList([]const u8).init(allocator),
             .filename = filename,
+            .row_index = 0,
         };
     }
 
@@ -85,7 +87,7 @@ pub const Editor = struct {
             try self.state.loadFile(filename.?);
         }
 
-        try self.output.render(&self.state.rows);
+        try self.output.render(&self.state.rows, &self.state.row_index);
         try self.terminal.flush();
     }
 
@@ -98,8 +100,28 @@ pub const Editor = struct {
 
     fn executeAction(self: *Editor, action: zed.action.Action) !void {
         switch (action) {
-            .moveCursorUp => try self.terminal.moveCursorByDirection(.up, 1),
-            .moveCursorDown => try self.terminal.moveCursorByDirection(.down, 1),
+            .moveCursorUp => {
+                const current_file_row = (self.terminal.position.y - 1) + self.state.row_index;
+
+                if (current_file_row > 0) {
+                    if (self.terminal.position.y <= 1) {
+                        self.state.row_index -= 1;
+                    } else {
+                        try self.terminal.moveCursorByDirection(.up, 1);
+                    }
+                }
+            },
+            .moveCursorDown => {
+                const current_file_row = (self.terminal.position.y - 1) + self.state.row_index;
+
+                if (current_file_row < self.state.rows.items.len - 1) {
+                    if (self.terminal.position.y >= self.terminal.size.rows) {
+                        self.state.row_index += 1;
+                    } else {
+                        try self.terminal.moveCursorByDirection(.down, 1);
+                    }
+                }
+            },
             .moveCursorLeft => try self.terminal.moveCursorByDirection(.left, 1),
             .moveCursorRight => try self.terminal.moveCursorByDirection(.right, 1),
             .quit => {
@@ -111,7 +133,7 @@ pub const Editor = struct {
     }
 
     fn render(self: *Editor) !void {
-        try self.output.render(&self.state.rows);
+        try self.output.render(&self.state.rows, &self.state.row_index);
         try self.terminal.flush();
     }
 };

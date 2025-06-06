@@ -14,10 +14,10 @@ pub const Output = struct {
         };
     }
 
-    pub fn render(self: *Output, rows: *std.ArrayList([]const u8)) !void {
+    pub fn render(self: *Output, rows: *std.ArrayList([]const u8), editor_row_index: *usize) !void {
         try self.terminal.appendEscapeToBuffer(.clear_entire_screen);
         try self.terminal.appendEscapeToBuffer(.move_cursor_to_origin);
-        try self.drawRows(rows);
+        try self.drawRows(rows, editor_row_index.*);
         try self.terminal.setCursorPosition(self.terminal.position);
     }
 
@@ -32,13 +32,14 @@ pub const Output = struct {
         try self.terminal.flush();
     }
 
-    fn drawRows(self: *Output, rows: *std.ArrayList([]const u8)) !void {
+    fn drawRows(self: *Output, rows: *std.ArrayList([]const u8), editor_row_index: usize) !void {
         var row_index: usize = 0;
         while (row_index < self.terminal.size.rows) : (row_index += 1) {
-            if (row_index >= rows.items.len) {
+            const editor_row = row_index + editor_row_index;
+            if (editor_row >= rows.items.len) {
                 try self.terminal.appendToBuffer("~");
             } else {
-                try self.terminal.appendToBuffer(rows.items[row_index]);
+                try self.terminal.appendToBuffer(rows.items[editor_row]);
             }
 
             try self.terminal.appendToBuffer(zed.terminal.EscapeSequence.clear_line.toString());
