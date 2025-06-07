@@ -104,38 +104,9 @@ pub const Editor = struct {
         switch (action) {
             .moveCursorUp => try self.moveVertically(.up),
             .moveCursorDown => try self.moveVertically(.down),
-            .moveCursorLeft => {
-                const current_file_row = (self.terminal.position.y - 1) + self.state.row_index;
-                const current_file_col = (self.terminal.position.x - 1) + self.state.col_index;
-                if (current_file_row >= self.state.rows.items.len) return;
-
-                if (current_file_col > 0) {
-                    if (self.terminal.position.x <= 1) {
-                        self.state.col_index -= 1;
-                    } else {
-                        try self.terminal.moveCursorByDirection(.left, 1);
-                    }
-                }
-            },
-            .moveCursorRight => {
-                const current_file_row = (self.terminal.position.y - 1) + self.state.row_index;
-                const current_file_col = (self.terminal.position.x - 1) + self.state.col_index;
-                if (current_file_row >= self.state.rows.items.len) return;
-
-                const current_row = self.state.rows.items[current_file_row];
-                if (current_file_col < current_row.len) {
-                    if (self.terminal.position.x >= self.terminal.size.cols) {
-                        self.state.col_index += 1;
-                    } else {
-                        try self.terminal.moveCursorByDirection(.right, 1);
-                    }
-                }
-            },
-            .quit => {
-                try self.output.clearScreen();
-                try self.terminal.disableRawMode();
-                std.posix.exit(0);
-            },
+            .moveCursorLeft => try self.moveHorizontally(.left),
+            .moveCursorRight => try self.moveHorizontally(.right),
+            .quit => try self.quitEditor(),
         }
     }
 
@@ -191,5 +162,36 @@ pub const Editor = struct {
                 self.adjustCursorForShorterRow(pos.row + 1, pos.col);
             },
         }
+    }
+
+    fn moveHorizontally(self: *Editor, direction: enum { left, right }) !void {
+        const pos = self.getCurrentFilePosition();
+        if (pos.row >= self.state.rows.items.len) return;
+
+        const current_row = self.state.rows.items[pos.row];
+        switch (direction) {
+            .left => {
+                if (pos.col <= 0) return;
+                if (self.terminal.position.x <= 1) {
+                    self.state.col_index -= 1;
+                } else {
+                    try self.terminal.moveCursorByDirection(.left, 1);
+                }
+            },
+            .right => {
+                if (pos.col >= current_row.len) return;
+                if (self.terminal.position.x >= self.terminal.size.cols) {
+                    self.state.col_index += 1;
+                } else {
+                    try self.terminal.moveCursorByDirection(.right, 1);
+                }
+            },
+        }
+    }
+
+    fn quitEditor(self: *Editor) !void {
+        try self.output.clearScreen();
+        try self.terminal.disableRawMode();
+        std.posix.exit(0);
     }
 };
