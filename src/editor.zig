@@ -103,7 +103,10 @@ pub const Editor = struct {
     fn executeAction(self: *Editor, action: zed.action.Action) !void {
         switch (action) {
             .moveCursorUp => {
+                const current_file_col = (self.terminal.position.x - 1) + self.state.col_index;
                 const current_file_row = (self.terminal.position.y - 1) + self.state.row_index;
+
+                if (self.state.rows.items.len == 0) return;
                 if (current_file_row <= 0) return;
 
                 if (self.terminal.position.y <= 1) {
@@ -111,15 +114,46 @@ pub const Editor = struct {
                 } else {
                     try self.terminal.moveCursorByDirection(.up, 1);
                 }
+
+                const next_file_row = current_file_row - 1;
+                const next_row = self.state.rows.items[next_file_row];
+
+                if (current_file_col > next_row.len) {
+                    const new_col_screen: u16 = @intCast(@min(next_row.len, self.terminal.size.cols - 1));
+                    const new_col_offset: u16 = @intCast(if (next_row.len > self.terminal.size.cols - 1)
+                        next_row.len - self.terminal.size.cols + 1
+                    else
+                        0);
+
+                    self.state.col_index = new_col_offset;
+                    self.terminal.position.x = new_col_screen - new_col_offset + 1;
+                }
             },
             .moveCursorDown => {
+                const current_file_col = (self.terminal.position.x - 1) + self.state.col_index;
                 const current_file_row = (self.terminal.position.y - 1) + self.state.row_index;
-                if (current_file_row > self.state.rows.items.len - 1) return;
+
+                if (self.state.rows.items.len == 0) return;
+                if (current_file_row >= self.state.rows.items.len - 1) return;
 
                 if (self.terminal.position.y >= self.terminal.size.rows) {
                     self.state.row_index += 1;
                 } else {
                     try self.terminal.moveCursorByDirection(.down, 1);
+                }
+
+                const next_file_row = current_file_row + 1;
+                const next_row = self.state.rows.items[next_file_row];
+
+                if (current_file_col > next_row.len) {
+                    const new_col_screen: u16 = @intCast(@min(next_row.len, self.terminal.size.cols - 1));
+                    const new_col_offset: u16 = @intCast(if (next_row.len > self.terminal.size.cols - 1)
+                        next_row.len - self.terminal.size.cols + 1
+                    else
+                        0);
+
+                    self.state.col_index = new_col_offset;
+                    self.terminal.position.x = new_col_screen - new_col_offset + 1;
                 }
             },
             .moveCursorLeft => {
