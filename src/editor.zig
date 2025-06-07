@@ -102,60 +102,8 @@ pub const Editor = struct {
 
     fn executeAction(self: *Editor, action: zed.action.Action) !void {
         switch (action) {
-            .moveCursorUp => {
-                const current_file_col = (self.terminal.position.x - 1) + self.state.col_index;
-                const current_file_row = (self.terminal.position.y - 1) + self.state.row_index;
-
-                if (self.state.rows.items.len == 0) return;
-                if (current_file_row <= 0) return;
-
-                if (self.terminal.position.y <= 1) {
-                    self.state.row_index -= 1;
-                } else {
-                    try self.terminal.moveCursorByDirection(.up, 1);
-                }
-
-                const next_file_row = current_file_row - 1;
-                const next_row = self.state.rows.items[next_file_row];
-
-                if (current_file_col > next_row.len) {
-                    const new_col_screen: u16 = @intCast(@min(next_row.len, self.terminal.size.cols - 1));
-                    const new_col_offset: u16 = @intCast(if (next_row.len > self.terminal.size.cols - 1)
-                        next_row.len - self.terminal.size.cols + 1
-                    else
-                        0);
-
-                    self.state.col_index = new_col_offset;
-                    self.terminal.position.x = new_col_screen - new_col_offset + 1;
-                }
-            },
-            .moveCursorDown => {
-                const current_file_col = (self.terminal.position.x - 1) + self.state.col_index;
-                const current_file_row = (self.terminal.position.y - 1) + self.state.row_index;
-
-                if (self.state.rows.items.len == 0) return;
-                if (current_file_row >= self.state.rows.items.len - 1) return;
-
-                if (self.terminal.position.y >= self.terminal.size.rows) {
-                    self.state.row_index += 1;
-                } else {
-                    try self.terminal.moveCursorByDirection(.down, 1);
-                }
-
-                const next_file_row = current_file_row + 1;
-                const next_row = self.state.rows.items[next_file_row];
-
-                if (current_file_col > next_row.len) {
-                    const new_col_screen: u16 = @intCast(@min(next_row.len, self.terminal.size.cols - 1));
-                    const new_col_offset: u16 = @intCast(if (next_row.len > self.terminal.size.cols - 1)
-                        next_row.len - self.terminal.size.cols + 1
-                    else
-                        0);
-
-                    self.state.col_index = new_col_offset;
-                    self.terminal.position.x = new_col_screen - new_col_offset + 1;
-                }
-            },
+            .moveCursorUp => try self.moveVertically(.up),
+            .moveCursorDown => try self.moveVertically(.down),
             .moveCursorLeft => {
                 const current_file_row = (self.terminal.position.y - 1) + self.state.row_index;
                 const current_file_col = (self.terminal.position.x - 1) + self.state.col_index;
@@ -194,5 +142,54 @@ pub const Editor = struct {
     fn render(self: *Editor) !void {
         try self.output.render(&self.state.rows, self.state.row_index, self.state.col_index);
         try self.terminal.flush();
+    }
+
+    fn getCurrentFilePosition(self: *Editor) struct { row: usize, col: usize } {
+        return .{
+            .row = (self.terminal.position.y - 1) + self.state.row_index,
+            .col = (self.terminal.position.x - 1) + self.state.col_index,
+        };
+    }
+
+    fn adjustCursorForShorterRow(self: *Editor, target_row_index: usize, current_file_col: usize) void {
+        const target_row = self.state.rows.items[target_row_index];
+
+        if (current_file_col > target_row.len) {
+            const new_col_screen: u16 = @intCast(@min(target_row.len, self.terminal.size.cols - 1));
+            const new_col_offset: u16 = @intCast(if (target_row.len > self.terminal.size.cols - 1)
+                target_row.len - self.terminal.size.cols + 1
+            else
+                0);
+
+            self.state.col_index = new_col_offset;
+            self.terminal.position.x = new_col_screen - new_col_offset + 1;
+        }
+    }
+
+    fn moveVertically(self: *Editor, direction: enum { up, down }) !void {
+        const pos = self.getCurrentFilePosition();
+
+        if (self.state.rows.items.len == 0) return;
+        if (direction == .up and pos.row <= 0) return;
+        if (direction == .down and pos.row >= self.state.rows.items.len - 1) return;
+
+        switch (direction) {
+            .up => {
+                if (self.terminal.position.y <= 1) {
+                    self.state.row_index -= 1;
+                } else {
+                    try self.terminal.moveCursorByDirection(.up, 1);
+                }
+                self.adjustCursorForShorterRow(pos.row - 1, pos.col);
+            },
+            .down => {
+                if (self.terminal.position.y >= self.terminal.size.rows) {
+                    self.state.row_index += 1;
+                } else {
+                    try self.terminal.moveCursorByDirection(.down, 1);
+                }
+                self.adjustCursorForShorterRow(pos.row + 1, pos.col);
+            },
+        }
     }
 };
