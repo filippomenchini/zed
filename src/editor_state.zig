@@ -6,6 +6,7 @@ pub const EditorState = struct {
     filename: []const u8,
     row_index: usize,
     col_index: usize,
+    preferred_col_index: ?usize,
     message: []const u8,
     message_time: i64,
 
@@ -19,6 +20,7 @@ pub const EditorState = struct {
             .filename = filename,
             .row_index = 0,
             .col_index = 0,
+            .preferred_col_index = null,
             .message = "Welcome to ZED! - Press CTRL + C to quit.",
             .message_time = std.time.timestamp(),
         };

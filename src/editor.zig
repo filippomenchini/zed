@@ -102,6 +102,10 @@ pub const Editor = struct {
         if (direction == .up and pos.row <= 0) return;
         if (direction == .down and pos.row >= self.state.rows.items.len - 1) return;
 
+        if (self.state.preferred_col_index == null) {
+            self.state.preferred_col_index = pos.col;
+        }
+
         switch (direction) {
             .up => {
                 if (self.terminal.position.y <= 1) {
@@ -109,7 +113,6 @@ pub const Editor = struct {
                 } else {
                     try self.terminal.moveCursorByDirection(.up, 1);
                 }
-                self.adjustCursorForShorterRow(pos.row - 1, pos.col);
             },
             .down => {
                 if (self.terminal.position.y >= self.terminal.size.rows) {
@@ -117,8 +120,25 @@ pub const Editor = struct {
                 } else {
                     try self.terminal.moveCursorByDirection(.down, 1);
                 }
-                self.adjustCursorForShorterRow(pos.row + 1, pos.col);
             },
+        }
+
+        const target_row_index = if (direction == .up) pos.row - 1 else pos.row + 1;
+        self.adjustCursorToPreferredColumn(target_row_index);
+    }
+
+    fn adjustCursorToPreferredColumn(self: *Editor, target_row_index: usize) void {
+        const target_row = self.state.rows.items[target_row_index];
+        const preferred_col = self.state.preferred_col_index.?;
+
+        const target_col = @min(preferred_col, target_row.len);
+
+        if (target_col >= self.terminal.size.cols) {
+            self.state.col_index = target_col - self.terminal.size.cols + 1;
+            self.terminal.position.x = self.terminal.size.cols;
+        } else {
+            self.state.col_index = 0;
+            self.terminal.position.x = @intCast(target_col + 1);
         }
     }
 
@@ -145,6 +165,8 @@ pub const Editor = struct {
                 }
             },
         }
+
+        self.state.preferred_col_index = null;
     }
 
     fn quitEditor(self: *Editor) !void {
