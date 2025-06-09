@@ -21,6 +21,7 @@ pub fn main() !void {
     var input = zed.input.Input.init(&terminal);
     var editor_state = zed.editor_state.EditorState.init(allocator, "");
     var args = try zed.args.Args.init(allocator);
+    var action_handler = zed.action_handler.ActionHandler{};
     var editor = try zed.editor.Editor.init(
         &config,
         &terminal,
@@ -28,6 +29,7 @@ pub fn main() !void {
         &output,
         &editor_state,
         &args,
+        &action_handler,
     );
     defer editor.deinit();
 
