@@ -46,6 +46,10 @@ pub const EscapeSequence = enum {
     pub fn moveCursorTo(buf: []u8, x: u16, y: u16) ![]const u8 {
         return std.fmt.bufPrint(buf, "\x1b[{d};{d}H", .{ y, x });
     }
+
+    pub fn escape(buf: []u8, seq: []u8) ![]const u8 {
+        return std.fmt.bufPrint(buf, "\x1b[{s}", .{seq});
+    }
 };
 
 pub const Terminal = struct {
@@ -165,7 +169,7 @@ pub const Terminal = struct {
         );
 
         return Size{
-            .rows = buffer.row,
+            .rows = buffer.row - 2, // to leave room for status bar and message bar
             .cols = buffer.col,
         };
     }

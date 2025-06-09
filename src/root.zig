@@ -6,3 +6,4 @@ pub const editor = @import("editor.zig");
 pub const append_buffer = @import("append_buffer.zig");
 pub const action = @import("action.zig");
 pub const args = @import("args.zig");
+pub const editor_state = @import("editor_state.zig");

@@ -1,54 +1,12 @@
 const std = @import("std");
 const zed = @import("root.zig");
 
-pub const EditorState = struct {
-    allocator: std.mem.Allocator,
-    rows: std.ArrayList([]const u8),
-    filename: []const u8,
-    row_index: usize,
-    col_index: usize,
-
-    pub fn init(
-        allocator: std.mem.Allocator,
-        filename: []const u8,
-    ) EditorState {
-        return .{
-            .allocator = allocator,
-            .rows = std.ArrayList([]const u8).init(allocator),
-            .filename = filename,
-            .row_index = 0,
-            .col_index = 0,
-        };
-    }
-
-    fn loadFile(self: *EditorState, filename: []const u8) !void {
-        const content = try std.fs.cwd().readFileAlloc(self.allocator, filename, std.math.maxInt(usize));
-        defer self.allocator.free(content);
-
-        var lines = std.mem.splitSequence(u8, content, "\n");
-        while (lines.next()) |line| {
-            const owned_line = try self.allocator.dupe(u8, line);
-            try self.rows.append(owned_line);
-        }
-
-        self.filename = try self.allocator.dupe(u8, filename);
-    }
-
-    fn deinit(self: *EditorState) void {
-        for (self.rows.items) |row| {
-            self.allocator.free(row);
-        }
-        self.rows.deinit();
-        self.allocator.free(self.filename);
-    }
-};
-
 pub const Editor = struct {
     config: *zed.config.Config,
     terminal: *zed.terminal.Terminal,
     input: *zed.input.Input,
     output: *zed.output.Output,
-    state: *EditorState,
+    state: *zed.editor_state.EditorState,
     args: *zed.args.Args,
 
     pub fn init(
@@ -56,7 +14,7 @@ pub const Editor = struct {
         terminal: *zed.terminal.Terminal,
         input: *zed.input.Input,
         output: *zed.output.Output,
-        state: *EditorState,
+        state: *zed.editor_state.EditorState,
         args: *zed.args.Args,
     ) !Editor {
         return Editor{
@@ -89,7 +47,7 @@ pub const Editor = struct {
             try self.state.loadFile(filename.?);
         }
 
-        try self.output.render(&self.state.rows, self.state.row_index, self.state.col_index);
+        try self.output.render(self.state);
         try self.terminal.flush();
     }
 
@@ -111,7 +69,7 @@ pub const Editor = struct {
     }
 
     fn render(self: *Editor) !void {
-        try self.output.render(&self.state.rows, self.state.row_index, self.state.col_index);
+        try self.output.render(self.state);
         try self.terminal.flush();
     }
 
