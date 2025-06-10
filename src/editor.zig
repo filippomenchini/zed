@@ -62,7 +62,11 @@ pub const Editor = struct {
     }
 
     fn executeAction(self: *Editor, action: zed.action.Action) !void {
-        try self.action_handler.execute(self, action);
+        try self.action_handler.execute(zed.action_handler.ActionHandlerContext{
+            .state = self.state,
+            .terminal = self.terminal,
+            .output = self.output,
+        }, action);
     }
 
     fn render(self: *Editor) !void {

@@ -1,37 +1,37 @@
 const zed = @import("../root.zig");
 
 pub fn moveHorizontally(
-    self: *zed.editor.Editor,
+    context: zed.action_handler.ActionHandlerContext,
     direction: enum { left, right },
 ) !void {
-    const pos = getCurrentFilePosition(self);
-    if (pos.row >= self.state.rows.items.len) return;
+    const pos = getCurrentFilePosition(context);
+    if (pos.row >= context.state.rows.items.len) return;
 
-    const current_row = self.state.rows.items[pos.row];
+    const current_row = context.state.rows.items[pos.row];
     switch (direction) {
         .left => {
             if (pos.col <= 0) return;
-            if (self.terminal.position.x <= 1) {
-                self.state.col_index -= 1;
+            if (context.terminal.position.x <= 1) {
+                context.state.col_index -= 1;
             } else {
-                try self.terminal.moveCursorByDirection(.left, 1);
+                try context.terminal.moveCursorByDirection(.left, 1);
             }
         },
         .right => {
             if (pos.col >= current_row.len) return;
-            if (self.terminal.position.x >= self.terminal.size.cols) {
-                self.state.col_index += 1;
+            if (context.terminal.position.x >= context.terminal.size.cols) {
+                context.state.col_index += 1;
             } else {
-                try self.terminal.moveCursorByDirection(.right, 1);
+                try context.terminal.moveCursorByDirection(.right, 1);
             }
         },
     }
 
-    self.state.preferred_col_index = null;
+    context.state.preferred_col_index = null;
 }
 
 pub fn moveVertically(
-    self: *zed.editor.Editor,
+    self: zed.action_handler.ActionHandlerContext,
     direction: enum { up, down },
 ) !void {
     const pos = getCurrentFilePosition(self);
@@ -65,7 +65,9 @@ pub fn moveVertically(
     adjustCursorToPreferredColumn(self, target_row_index);
 }
 
-fn getCurrentFilePosition(self: *zed.editor.Editor) struct { row: usize, col: usize } {
+fn getCurrentFilePosition(
+    self: zed.action_handler.ActionHandlerContext,
+) struct { row: usize, col: usize } {
     return .{
         .row = (self.terminal.position.y - 1) + self.state.row_index,
         .col = (self.terminal.position.x - 1) + self.state.col_index,
@@ -73,7 +75,7 @@ fn getCurrentFilePosition(self: *zed.editor.Editor) struct { row: usize, col: us
 }
 
 fn adjustCursorForShorterRow(
-    self: *zed.editor.Editor,
+    self: zed.action_handler.ActionHandlerContext,
     target_row_index: usize,
     current_file_col: usize,
 ) void {
@@ -92,7 +94,7 @@ fn adjustCursorForShorterRow(
 }
 
 fn adjustCursorToPreferredColumn(
-    self: *zed.editor.Editor,
+    self: zed.action_handler.ActionHandlerContext,
     target_row_index: usize,
 ) void {
     const target_row = self.state.rows.items[target_row_index];
