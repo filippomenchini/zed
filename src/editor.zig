@@ -1,23 +1,29 @@
 const std = @import("std");
 const zed = @import("root.zig");
 
+pub const EditorMode = enum {
+    normal,
+    insert,
+};
+
 pub const Editor = struct {
-    config: *zed.config.Config,
-    terminal: *zed.terminal.Terminal,
-    input: *zed.input.Input,
-    output: *zed.output.Output,
-    state: *zed.editor_state.EditorState,
-    args: *zed.args.Args,
-    action_handler: *zed.action_handler.ActionHandler,
+    config: *zed.Config,
+    terminal: *zed.Terminal,
+    input: *zed.Input,
+    output: *zed.Output,
+    state: *zed.EditorState,
+    args: *zed.Args,
+    action_handler: *zed.ActionHandler,
+    mode: EditorMode,
 
     pub fn init(
-        config: *zed.config.Config,
-        terminal: *zed.terminal.Terminal,
-        input: *zed.input.Input,
-        output: *zed.output.Output,
-        state: *zed.editor_state.EditorState,
-        args: *zed.args.Args,
-        action_handler: *zed.action_handler.ActionHandler,
+        config: *zed.Config,
+        terminal: *zed.Terminal,
+        input: *zed.Input,
+        output: *zed.Output,
+        state: *zed.EditorState,
+        args: *zed.Args,
+        action_handler: *zed.ActionHandler,
     ) !Editor {
         return Editor{
             .config = config,
@@ -27,6 +33,7 @@ pub const Editor = struct {
             .state = state,
             .args = args,
             .action_handler = action_handler,
+            .mode = .normal,
         };
     }
 
@@ -43,7 +50,7 @@ pub const Editor = struct {
 
     fn start(self: *Editor) !void {
         try self.terminal.enableRawMode();
-        try self.terminal.setCursorPosition(zed.terminal.CursorPosition{});
+        try self.terminal.setCursorPosition(zed.TerminalCursorPosition{});
 
         const filename = self.args.getFilename();
         if (filename != null) {
@@ -55,14 +62,14 @@ pub const Editor = struct {
     }
 
     fn handleInput(self: *Editor) !void {
-        if (try self.input.processKeypress(self.config)) |action| {
+        if (try self.input.processKeypress(self.config, self.mode)) |action| {
             try self.executeAction(action);
             try self.render();
         }
     }
 
-    fn executeAction(self: *Editor, action: zed.action.Action) !void {
-        try self.action_handler.execute(zed.action_handler.ActionHandlerContext{
+    fn executeAction(self: *Editor, action: zed.Action) !void {
+        try self.action_handler.execute(zed.ActionHandlerContext{
             .state = self.state,
             .terminal = self.terminal,
             .output = self.output,

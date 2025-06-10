@@ -7,10 +7,10 @@ const InputError = error{
 };
 
 pub const Input = struct {
-    terminal: *zed.terminal.Terminal,
+    terminal: *zed.Terminal,
 
     pub fn init(
-        terminal: *zed.terminal.Terminal,
+        terminal: *zed.Terminal,
     ) Input {
         return .{
             .terminal = terminal,
@@ -28,9 +28,10 @@ pub const Input = struct {
 
     pub fn processKeypress(
         self: *Input,
-        config: *const zed.config.Config,
-    ) !?zed.action.Action {
+        config: *const zed.Config,
+        mode: zed.EditorMode,
+    ) !?zed.Action {
         const key = try self.readKey();
-        return config.findAction(key);
+        return config.findAction(key, mode);
     }
 };

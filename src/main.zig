@@ -7,11 +7,31 @@ pub fn main() !void {
     defer _ = gpa.deinit();
 
     const key_bindings = [_]zed.KeyBinding{
-        .{ .key = zed.Config.ctrlKey('c'), .action = zed.Action.quit },
-        .{ .key = 'k', .action = zed.Action.moveCursorUp },
-        .{ .key = 'j', .action = zed.Action.moveCursorDown },
-        .{ .key = 'h', .action = zed.Action.moveCursorLeft },
-        .{ .key = 'l', .action = zed.Action.moveCursorRight },
+        .{
+            .key = zed.Config.ctrlKey('c'),
+            .mode = .normal,
+            .action = zed.Action.quit,
+        },
+        .{
+            .key = 'k',
+            .mode = .normal,
+            .action = zed.Action.moveCursorUp,
+        },
+        .{
+            .key = 'j',
+            .mode = .normal,
+            .action = zed.Action.moveCursorDown,
+        },
+        .{
+            .key = 'h',
+            .mode = .normal,
+            .action = zed.Action.moveCursorLeft,
+        },
+        .{
+            .key = 'l',
+            .mode = .normal,
+            .action = zed.Action.moveCursorRight,
+        },
     };
 
     var config = zed.Config{ .key_bindings = &key_bindings };
