@@ -8,3 +8,15 @@ pub const action = @import("action.zig");
 pub const args = @import("args.zig");
 pub const editor_state = @import("editor_state.zig");
 pub const action_handler = @import("action_handler.zig");
+
+pub const Terminal = terminal.Terminal;
+pub const Config = config.Config;
+pub const KeyBinding = config.KeyBinding;
+pub const Input = input.Input;
+pub const Output = output.Output;
+pub const Editor = editor.Editor;
+pub const AppendBuffer = append_buffer.AppendBuffer;
+pub const Action = action.Action;
+pub const Args = args.Args;
+pub const EditorState = editor_state.EditorState;
+pub const ActionHandler = action_handler.ActionHandler;

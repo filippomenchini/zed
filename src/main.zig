@@ -6,23 +6,23 @@ pub fn main() !void {
     const allocator = gpa.allocator();
     defer _ = gpa.deinit();
 
-    const key_bindings = [_]zed.config.KeyBinding{
-        .{ .key = zed.config.Config.ctrlKey('c'), .action = zed.action.Action.quit },
-        .{ .key = 'k', .action = zed.action.Action.moveCursorUp },
-        .{ .key = 'j', .action = zed.action.Action.moveCursorDown },
-        .{ .key = 'h', .action = zed.action.Action.moveCursorLeft },
-        .{ .key = 'l', .action = zed.action.Action.moveCursorRight },
+    const key_bindings = [_]zed.KeyBinding{
+        .{ .key = zed.Config.ctrlKey('c'), .action = zed.Action.quit },
+        .{ .key = 'k', .action = zed.Action.moveCursorUp },
+        .{ .key = 'j', .action = zed.Action.moveCursorDown },
+        .{ .key = 'h', .action = zed.Action.moveCursorLeft },
+        .{ .key = 'l', .action = zed.Action.moveCursorRight },
     };
 
-    var config = zed.config.Config{ .key_bindings = &key_bindings };
-    var append_buffer = zed.append_buffer.AppendBuffer.init(allocator);
-    var terminal = try zed.terminal.Terminal.init(&append_buffer);
-    var output = zed.output.Output.init(&terminal);
-    var input = zed.input.Input.init(&terminal);
-    var editor_state = zed.editor_state.EditorState.init(allocator, "");
-    var args = try zed.args.Args.init(allocator);
-    var action_handler = zed.action_handler.ActionHandler{};
-    var editor = try zed.editor.Editor.init(
+    var config = zed.Config{ .key_bindings = &key_bindings };
+    var append_buffer = zed.AppendBuffer.init(allocator);
+    var terminal = try zed.Terminal.init(&append_buffer);
+    var output = zed.Output.init(&terminal);
+    var input = zed.Input.init(&terminal);
+    var editor_state = zed.EditorState.init(allocator, "");
+    var args = try zed.Args.init(allocator);
+    var action_handler = zed.ActionHandler{};
+    var editor = try zed.Editor.init(
         &config,
         &terminal,
         &input,
