@@ -76,6 +76,7 @@ pub const Output = struct {
         }
 
         try self.terminal.appendToBuffer("\x1b[m");
+        try self.terminal.appendToBuffer("\r\n");
     }
 
     fn drawMessageBar(
