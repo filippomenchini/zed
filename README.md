@@ -1,78 +1,39 @@
-# ZED: a simple Zig text EDitor
+# ZED - A Simple Text Editor in Zig
 
-A minimalist terminal text editor built with Zig, inspired by the classic Kilo editor. ZED focuses on simplicity, performance, and educational value while providing a solid foundation for understanding low-level terminal programming.
+A basic terminal text editor built with Zig for learning purposes.
+Inspired by the [Kilo editor](https://github.com/antirez/kilo) but took an unexpected turn.
 
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
 git clone https://github.com/filippomenchini/zed.git
 cd zed
-zig build run
+zig build run -- zanluca
 ```
 
-Press `Ctrl+C` to quit.
+## Architecture
 
-## 🎓 What You'll Learn
+Clean modular design with dependency injection:
+- Terminal abstraction layer
+- Action-based command system  
+- Separated input/output handling
+- Explicit memory management
 
-This project serves as an educational resource for understanding terminal programming fundamentals:
+## Learning Resources
 
-### Core Concepts
+- [Build Your Own Text Editor](https://viewsourcecode.org/snaptoken/kilo/) - The original Kilo tutorial
+- [VT100 User Guide](https://vt100.net/docs/vt100-ug/) - Terminal escape sequences
+- [Zig Documentation](https://ziglang.org/documentation/) - Language reference
 
-- **Raw vs Canonical Mode**: How terminals handle input processing
-- **VT100 Escape Sequences**: The universal standard for terminal control
-- **POSIX System Calls**: Low-level interfaces for terminal manipulation
-- **Control Characters**: The bit manipulation behind Ctrl+C and friends
+## What is zanluca?
 
-### Historical Context
+The correct question is _who is zanluca?_
+Zanluca is a friend of mine that was present when I started coding this editor.
+I wanted a simple text file to test the program and I did not know what to write
+into it.
+Zanluca does NOT like setting the table for dinner, but his mom would be really
+proud if he really did.
 
-The techniques used here trace back to 1960s-70s teletypes and early computer terminals. These fundamentals still power every terminal emulator today, making this knowledge both historical and immediately practical.
+## License
 
-### Code Quality
-
-Every module is extensively documented with:
-
-- Clear explanations of "mysterious" low-level concepts
-- Historical background for why things work the way they do
-- Bit manipulation examples with binary representations
-- Cross-references to standards and specifications
-
-## 🏗️ Design Philosophy
-
-ZED prioritizes:
-
-- **Educational Value**: Code that teaches while it works
-- **Modularity**: Clean separation of concerns
-- **Documentation**: Extensive comments explaining the "why" not just the "what"
-- **Simplicity**: Minimal dependencies, maximum understanding
-- **Compatibility**: VT100 standards ensure universal terminal support
-
-## 🎯 Perfect For
-
-- Learning systems programming in Zig
-- Understanding how terminal applications work
-- Building your own text editor or console application
-- Exploring the intersection of modern programming and computing history
-- Anyone curious about what happens when you press Ctrl+C
-
-## 🤝 Contributing
-
-Contributions welcome! Please maintain the educational focus:
-
-- Document complex concepts thoroughly
-- Include historical context where relevant
-- Keep code beginner-friendly
-- Explain the "why" behind technical decisions
-
-## 📖 References
-
-- [Kilo Editor](https://github.com/antirez/kilo) - Original inspiration
-- [VT100 Technical Manual](https://vt100.net/docs/vt100-ug/) - Escape sequence reference
-- [POSIX Terminal Interface](https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/termios.h.html) - Terminal standards
-
-## 📝 License
-
-MIT License - see [LICENSE](LICENSE) file for details.
-
----
-
-_Because every programmer should understand how their terminal works._
+[MIT](LICENSE)
