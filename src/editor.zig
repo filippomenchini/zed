@@ -1,11 +1,6 @@
 const std = @import("std");
 const zed = @import("root.zig");
 
-pub const EditorMode = enum {
-    normal,
-    insert,
-};
-
 pub const Editor = struct {
     config: *zed.Config,
     terminal: *zed.Terminal,
@@ -14,7 +9,6 @@ pub const Editor = struct {
     state: *zed.EditorState,
     args: *zed.Args,
     action_handler: *zed.ActionHandler,
-    mode: EditorMode,
 
     pub fn init(
         config: *zed.Config,
@@ -33,7 +27,6 @@ pub const Editor = struct {
             .state = state,
             .args = args,
             .action_handler = action_handler,
-            .mode = .normal,
         };
     }
 
@@ -62,7 +55,7 @@ pub const Editor = struct {
     }
 
     fn handleInput(self: *Editor) !void {
-        if (try self.input.processKeypress(self.config, self.mode)) |action| {
+        if (try self.input.processKeypress(self.config, self.state.mode)) |action| {
             try self.executeAction(action);
             try self.render();
         }

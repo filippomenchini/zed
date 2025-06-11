@@ -1,6 +1,7 @@
 const std = @import("std");
 const zed = @import("root.zig");
 const movement = @import("commands/movement.zig");
+const modals = @import("commands/modals.zig");
 
 pub const ActionHandlerContext = struct {
     state: *zed.editor_state.EditorState,
@@ -15,11 +16,17 @@ pub const ActionHandler = struct {
         action: zed.action.Action,
     ) !void {
         switch (action) {
+            .quit => try quit(context),
+
+            // Movement
             .moveCursorUp => try movement.moveVertically(context, .up),
             .moveCursorDown => try movement.moveVertically(context, .down),
             .moveCursorLeft => try movement.moveHorizontally(context, .left),
             .moveCursorRight => try movement.moveHorizontally(context, .right),
-            .quit => try quit(context),
+
+            // Modals
+            .setInsertMode => modals.setEditorMode(context, .insert),
+            .setNormalMode => modals.setEditorMode(context, .normal),
         }
     }
 

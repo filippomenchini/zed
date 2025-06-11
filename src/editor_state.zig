@@ -1,5 +1,17 @@
 const std = @import("std");
 
+pub const EditorMode = enum {
+    normal,
+    insert,
+
+    pub fn toString(self: *const EditorMode) []const u8 {
+        return switch (self.*) {
+            EditorMode.normal => "NORMAL",
+            EditorMode.insert => "INSERT",
+        };
+    }
+};
+
 pub const EditorState = struct {
     allocator: std.mem.Allocator,
     rows: std.ArrayList([]const u8),
@@ -9,6 +21,7 @@ pub const EditorState = struct {
     preferred_col_index: ?usize,
     message: []const u8,
     message_time: i64,
+    mode: EditorMode,
 
     pub fn init(
         allocator: std.mem.Allocator,
@@ -23,7 +36,16 @@ pub const EditorState = struct {
             .preferred_col_index = null,
             .message = "Welcome to ZED! - Press CTRL + C to quit.",
             .message_time = std.time.timestamp(),
+            .mode = .normal,
         };
+    }
+
+    pub fn deinit(self: *EditorState) void {
+        for (self.rows.items) |row| {
+            self.allocator.free(row);
+        }
+        self.rows.deinit();
+        self.allocator.free(self.filename);
     }
 
     pub fn loadFile(self: *EditorState, filename: []const u8) !void {
@@ -39,11 +61,8 @@ pub const EditorState = struct {
         self.filename = try self.allocator.dupe(u8, filename);
     }
 
-    pub fn deinit(self: *EditorState) void {
-        for (self.rows.items) |row| {
-            self.allocator.free(row);
-        }
-        self.rows.deinit();
-        self.allocator.free(self.filename);
+    pub fn setMessage(self: *EditorState, message: []u8) void {
+        self.message = message;
+        self.message_time = std.time.timestamp();
     }
 };

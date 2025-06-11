@@ -17,13 +17,46 @@ pub const Input = struct {
         };
     }
 
-    pub fn readKey(self: *Input) InputError!u8 {
+    pub fn readKey(self: *Input) InputError!zed.Key {
         var character: [1]u8 = .{0};
         _ = self.terminal.read(&character) catch {
             return InputError.ReadError;
         };
 
-        return character[0];
+        if (character[0] != '\x1b') {
+            return zed.Key.fromChar(character[0]);
+        }
+
+        var seq: [3]u8 = .{ 0, 0, 0 };
+        if (self.terminal.read(seq[0..1]) catch 0 == 0) {
+            return zed.Key.escape;
+        }
+
+        if (self.terminal.read(seq[1..2]) catch 0 == 0) {
+            return zed.Key.escape;
+        }
+
+        if (seq[0] == '[') {
+            switch (seq[1]) {
+                '1'...'6' => {
+                    var third: [1]u8 = undefined;
+                    if (self.terminal.read(&third) catch 0 == 0) {
+                        return zed.Key.escape;
+                    }
+
+                    if (third[0] == '~') {
+                        switch (seq[1]) {
+                            '3' => return zed.Key.delete,
+                            else => return zed.Key.escape,
+                        }
+                    }
+                    return zed.Key.escape;
+                },
+                else => return zed.Key.escape,
+            }
+        }
+
+        return zed.Key.escape;
     }
 
     pub fn processKeypress(

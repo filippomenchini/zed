@@ -8,29 +8,39 @@ pub fn main() !void {
 
     const key_bindings = [_]zed.KeyBinding{
         .{
-            .key = zed.Config.ctrlKey('c'),
-            .mode = .normal,
+            .key = zed.Key.ctrlKey('c'),
+            .mode = null,
             .action = zed.Action.quit,
         },
         .{
-            .key = 'k',
+            .key = zed.Key.fromChar('k'),
             .mode = .normal,
             .action = zed.Action.moveCursorUp,
         },
         .{
-            .key = 'j',
+            .key = zed.Key.fromChar('j'),
             .mode = .normal,
             .action = zed.Action.moveCursorDown,
         },
         .{
-            .key = 'h',
+            .key = zed.Key.fromChar('h'),
             .mode = .normal,
             .action = zed.Action.moveCursorLeft,
         },
         .{
-            .key = 'l',
+            .key = zed.Key.fromChar('l'),
             .mode = .normal,
             .action = zed.Action.moveCursorRight,
+        },
+        .{
+            .key = zed.Key.fromChar('i'),
+            .mode = .normal,
+            .action = zed.Action.setInsertMode,
+        },
+        .{
+            .key = zed.Key.escape,
+            .mode = .insert,
+            .action = zed.Action.setNormalMode,
         },
     };
 
