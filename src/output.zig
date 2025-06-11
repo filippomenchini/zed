@@ -85,6 +85,12 @@ pub const Output = struct {
     ) !void {
         try self.terminal.appendToBuffer(zed.terminal.EscapeSequence.clear_line.toString());
 
+        if (editor_state.mode == .command) {
+            try self.terminal.appendToBuffer(":");
+            try self.terminal.appendToBuffer(editor_state.command_buffer.items);
+            return;
+        }
+
         const current_time = std.time.timestamp();
         if (current_time - editor_state.message_time > 5) return;
 

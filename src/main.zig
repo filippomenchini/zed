@@ -38,8 +38,18 @@ pub fn main() !void {
             .action = zed.Action.setInsertMode,
         },
         .{
+            .key = zed.Key.fromChar(':'),
+            .mode = .normal,
+            .action = zed.Action.setCommandMode,
+        },
+        .{
             .key = zed.Key.escape,
             .mode = .insert,
+            .action = zed.Action.setNormalMode,
+        },
+        .{
+            .key = zed.Key.escape,
+            .mode = .command,
             .action = zed.Action.setNormalMode,
         },
     };

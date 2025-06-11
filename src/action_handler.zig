@@ -27,6 +27,7 @@ pub const ActionHandler = struct {
             // Modals
             .setInsertMode => modals.setEditorMode(context, .insert),
             .setNormalMode => modals.setEditorMode(context, .normal),
+            .setCommandMode => modals.setEditorMode(context, .command),
         }
     }
 
