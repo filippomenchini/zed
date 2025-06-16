@@ -7,9 +7,9 @@ pub const EditorMode = enum {
 
     pub fn toString(self: *const EditorMode) []const u8 {
         return switch (self.*) {
-            EditorMode.normal => "NORMAL",
-            EditorMode.insert => "INSERT",
-            EditorMode.command => "COMMAND",
+            EditorMode.normal => "-- NORMAL --",
+            EditorMode.insert => "-- INSERT --",
+            EditorMode.command => "-- COMMAND --",
         };
     }
 };
@@ -37,7 +37,7 @@ pub const EditorState = struct {
             .row_index = 0,
             .col_index = 0,
             .preferred_col_index = null,
-            .message = "Welcome to ZED! - Press CTRL + C to quit.",
+            .message = "Welcome to ZED! - Type ':q' to quit.",
             .message_time = std.time.timestamp(),
             .mode = .normal,
             .command_buffer = std.ArrayList(u8).init(allocator),

@@ -79,6 +79,19 @@ pub const Input = struct {
             };
         }
 
+        if (mode == .insert) {
+            return switch (key) {
+                .char => |c| switch (c) {
+                    '\r', '\n' => .insertNewline,
+                    127, 8 => .insertDelete,
+                    32...126 => zed.Action{ .insertWrite = c },
+                    else => null,
+                },
+                .escape => .insertCancel,
+                .delete => .insertDelete,
+            };
+        }
+
         return config.findAction(key, mode);
     }
 };

@@ -34,6 +34,12 @@ pub const ActionHandler = struct {
             .commandRun => try command_mode.runCommand(context),
             .commandInsert => try command_mode.appendToCommandBuffer(context, action),
             .commandDelete => try command_mode.removeFromCommandBuffer(context),
+
+            // Insert mode
+            .insertCancel => {},
+            .insertDelete => {},
+            .insertNewline => {},
+            .insertWrite => {},
         }
     }
 };

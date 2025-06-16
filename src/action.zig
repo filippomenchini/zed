@@ -16,4 +16,10 @@ pub const Action = union(enum) {
     commandDelete,
     commandInsert: u8,
     commandRun,
+
+    // Insert mode
+    insertCancel,
+    insertDelete,
+    insertNewline,
+    insertWrite: u8,
 };
