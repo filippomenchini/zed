@@ -65,6 +65,20 @@ pub const Input = struct {
         mode: zed.EditorMode,
     ) !?zed.Action {
         const key = try self.readKey();
+
+        if (mode == .command) {
+            return switch (key) {
+                .char => |c| switch (c) {
+                    '\r', '\n' => .commandRun,
+                    127, 8 => .commandDelete,
+                    32...126 => zed.Action{ .commandInsert = c },
+                    else => null,
+                },
+                .escape => .commandCancel,
+                .delete => .commandDelete,
+            };
+        }
+
         return config.findAction(key, mode);
     }
 };

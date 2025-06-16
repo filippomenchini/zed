@@ -2,6 +2,7 @@ const std = @import("std");
 const zed = @import("root.zig");
 const movement = @import("commands/movement.zig");
 const modals = @import("commands/modals.zig");
+const command_mode = @import("commands/command_mode.zig");
 
 pub const ActionHandlerContext = struct {
     state: *zed.editor_state.EditorState,
@@ -16,7 +17,6 @@ pub const ActionHandler = struct {
         action: zed.action.Action,
     ) !void {
         switch (action) {
-            .quit => try quit(context),
 
             // Movement
             .moveCursorUp => try movement.moveVertically(context, .up),
@@ -28,12 +28,12 @@ pub const ActionHandler = struct {
             .setInsertMode => modals.setEditorMode(context, .insert),
             .setNormalMode => modals.setEditorMode(context, .normal),
             .setCommandMode => modals.setEditorMode(context, .command),
-        }
-    }
 
-    fn quit(context: ActionHandlerContext) !void {
-        try context.output.clearScreen();
-        try context.terminal.disableRawMode();
-        std.posix.exit(0);
+            // Command mode
+            .commandCancel => modals.setEditorMode(context, .normal),
+            .commandRun => try command_mode.runCommand(context),
+            .commandInsert => try command_mode.appendToCommandBuffer(context, action),
+            .commandDelete => try command_mode.removeFromCommandBuffer(context),
+        }
     }
 };

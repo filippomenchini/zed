@@ -1,5 +1,4 @@
-pub const Action = enum {
-    quit,
+pub const Action = union(enum) {
 
     // Movement
     moveCursorUp,
@@ -11,4 +10,10 @@ pub const Action = enum {
     setInsertMode,
     setNormalMode,
     setCommandMode,
+
+    // Command mode
+    commandCancel,
+    commandDelete,
+    commandInsert: u8,
+    commandRun,
 };

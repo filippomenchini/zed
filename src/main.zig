@@ -8,11 +8,6 @@ pub fn main() !void {
 
     const key_bindings = [_]zed.KeyBinding{
         .{
-            .key = zed.Key.ctrlKey('c'),
-            .mode = null,
-            .action = zed.Action.quit,
-        },
-        .{
             .key = zed.Key.fromChar('k'),
             .mode = .normal,
             .action = zed.Action.moveCursorUp,
