@@ -9,6 +9,7 @@ pub fn insertCharacter(context: zed.ActionHandlerContext, char: u8) !void {
         const new_row = try context.state.allocator.alloc(u8, 1);
         new_row[0] = char;
         try context.state.rows.append(new_row);
+        try context.terminal.moveCursorByDirection(.right, 1);
         return;
     }
 
