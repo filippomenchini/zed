@@ -3,6 +3,7 @@ const zed = @import("root.zig");
 const movement = @import("commands/movement.zig");
 const modals = @import("commands/modals.zig");
 const command_mode = @import("commands/command_mode.zig");
+const editing = @import("commands/editing.zig");
 
 pub const ActionHandlerContext = struct {
     state: *zed.editor_state.EditorState,
@@ -36,10 +37,10 @@ pub const ActionHandler = struct {
             .commandDelete => try command_mode.removeFromCommandBuffer(context),
 
             // Insert mode
-            .insertCancel => {},
-            .insertDelete => {},
-            .insertNewline => {},
-            .insertWrite => {},
+            .insertCancel => modals.setEditorMode(context, .normal),
+            .insertDelete => try editing.insertBackspace(context),
+            .insertNewline => try editing.insertNewline(context),
+            .insertWrite => try editing.insertCharacter(context, action.insertWrite),
         }
     }
 };

@@ -1,4 +1,5 @@
 const zed = @import("../root.zig");
+const utils = @import("../utils/position.zig");
 
 pub fn moveHorizontally(
     context: zed.action_handler.ActionHandlerContext,
@@ -68,9 +69,10 @@ pub fn moveVertically(
 fn getCurrentFilePosition(
     self: zed.action_handler.ActionHandlerContext,
 ) struct { row: usize, col: usize } {
+    const position = utils.getCurrentFilePosition(self.terminal, self.state);
     return .{
-        .row = (self.terminal.position.y - 1) + self.state.row_index,
-        .col = (self.terminal.position.x - 1) + self.state.col_index,
+        .row = position.row,
+        .col = position.col,
     };
 }
 
