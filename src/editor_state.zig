@@ -54,7 +54,10 @@ pub const EditorState = struct {
     }
 
     pub fn loadFile(self: *EditorState, filename: []const u8) !void {
-        const content = try std.fs.cwd().readFileAlloc(self.allocator, filename, std.math.maxInt(usize));
+        const content = std.fs.cwd().readFileAlloc(self.allocator, filename, std.math.maxInt(usize)) catch {
+            self.filename = try self.allocator.dupe(u8, filename);
+            return;
+        };
         defer self.allocator.free(content);
 
         var lines = std.mem.splitSequence(u8, content, "\n");
