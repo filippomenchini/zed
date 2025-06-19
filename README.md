@@ -1,7 +1,7 @@
 # ZED - A Simple Text Editor in Zig
 
 A basic terminal text editor built with Zig for learning purposes.
-Inspired by the [Kilo editor](https://github.com/antirez/kilo) but took an unexpected turn.
+Inspired by the [Kilo editor](https://github.com/antirez/kilo) written by [Antirez](https://github.com/antirez) but took an unexpected turn.
 
 ## Quick Start
 
@@ -18,6 +18,16 @@ Clean modular design with dependency injection:
 - Action-based command system  
 - Separated input/output handling
 - Explicit memory management
+
+## How to use
+
+Zed uses "vim motions", modes and commands to operate.
+- Use `I` to enter INSERT mode
+- Use `:` to enter COMMAND mode
+- Use `ESC` to get back to NORMAL mode
+- Move with `h j k l` (left, down, up, right) just like in vim
+- Save file with `:w`
+- Exit with `:q`
 
 ## Learning Resources
 
