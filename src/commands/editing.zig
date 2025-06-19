@@ -68,7 +68,7 @@ pub fn insertBackspace(context: zed.ActionHandlerContext) !void {
     const pos = position.getCurrentFilePosition(context.terminal, context.state);
 
     if (pos.row >= context.state.rows.items.len) return;
-    if (pos.col == 0 and pos.row == 0) return; // Inizio file
+    if (pos.col == 0 and pos.row == 0) return;
 
     const current_row = context.state.rows.items[pos.row];
 
